@@ -27,10 +27,10 @@ type Command() =
     interface IExternalCommand with
       member this.Execute(commandData, message : string byref, elements) =
         try
-          use uiApp = commandData.Application
-          use app  = uiApp.Application
-          use uiDoc = uiApp.ActiveUIDocument
-          use doc  = uiDoc.Document
+          let uiApp = commandData.Application
+          let app  = uiApp.Application
+          let uiDoc = uiApp.ActiveUIDocument
+          let doc  = uiDoc.Document
           
           let reference = uiDoc.Selection.PickObject(ObjectType.Element, new WallSelectionFilter(), "Select a wall to split into panels")
 
