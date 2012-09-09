@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Assembly>C:\ProgramData\Autodesk\Revit\Addins\2014\FSharpPanelBuilder.dll</Assembly>
+    <ClientId>D0221707-35FD-4897-953C-9D4AF5E3F8AD</ClientId>
+    <FullClassName>FSharpPanelBuilder.Command</FullClassName>
+    <Text>F# Panel Builder</Text>
+    <Description>""</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>CPSR</VendorId>
+    <VendorDescription>CADPRO Systems Ltd, www.cadpro.co.nz</VendorDescription>
+  </AddIn>
+</RevitAddIns>
