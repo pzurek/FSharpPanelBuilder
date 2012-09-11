@@ -12,13 +12,8 @@ open Autodesk.Revit.UI.Selection
 type WallSelectionFilter() =
   class
     interface ISelectionFilter with
-      member x.AllowElement(element) =
-        match element with
-        | :? Wall as element -> true
-        | _ -> false
-
-      member x.AllowReference(reference, xyz) =
-        false
+      member x.AllowElement(element) = element :? Wall
+      member x.AllowReference(reference, xyz) = false
   end
 
 [<Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)>]
