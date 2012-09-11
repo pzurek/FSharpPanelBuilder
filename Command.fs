@@ -47,7 +47,8 @@ type Command() =
           let shiftDelta = Transform.get_Translation(delta)
           let rotation = Transform.get_Rotation(origin, XYZ.BasisZ, 0.5 * Math.PI)
           let wallWidthVector = rotation.OfVector(line.Direction.Multiply(2. * wall.Width))
-          let mutable intersectionLine = Line.CreateBound(origin + wallWidthVector, origin - wallWidthVector)
+          let mutable intersectionLine = Line.CreateBound(origin + wallWidthVector,
+                                                          origin - wallWidthVector)
           let curveArray = new List<Curve>()
 
           for i = 1 to divisions do
@@ -56,7 +57,10 @@ type Command() =
 
           let divisionSketchPlane = SketchPlane.Create(doc, new Plane(XYZ.BasisZ, line.Origin))
           let intersectionElementsIds = new List<ElementId>()
-          let partMaker = PartUtils.DivideParts(doc, parts, intersectionElementsIds, curveArray, divisionSketchPlane.Id)
+          let partMaker = PartUtils.DivideParts(doc, parts,
+                                                intersectionElementsIds,
+                                                curveArray,
+                                                divisionSketchPlane.Id)
           doc.ActiveView.PartsVisibility <- PartsVisibility.ShowPartsOnly
           transaction.Commit() |> ignore
 
