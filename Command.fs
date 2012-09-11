@@ -28,46 +28,54 @@ type Command() =
           let doc  = uiDoc.Document
           let sel = uiDoc.Selection
           
-          let reference = sel.PickObject(ObjectType.Element,
-                               new WallSelectionFilter(),
-                               "Select a wall to split into panels")
+          let reference =
+            try
+              sel.PickObject(ObjectType.Element,
+                             new WallSelectionFilter(),
+                             "Select a wall to split into panels")
+            with
+            | :? Autodesk.Revit.Exceptions.OperationCanceledException -> null
 
-          let wall = doc.GetElement(reference.ElementId) :?> Wall
-          let locationCurve = wall.Location :?> LocationCurve 
-          let line = locationCurve.Curve :?> Line
+          if reference = null then
+            TaskDialog.Show("F# Panel Builder", "Operation was canceled") |> ignore
+            Autodesk.Revit.UI.Result.Cancelled
+          else
+            let wall = doc.GetElement(reference.ElementId) :?> Wall
+            let locationCurve = wall.Location :?> LocationCurve 
+            let line = locationCurve.Curve :?> Line
 
-          use transaction = new Transaction(doc)
-          let status = transaction.Start("Building panels")
-          let wallList = new List<ElementId>(1)
-          wallList.Add(reference.ElementId)
+            use transaction = new Transaction(doc)
+            let status = transaction.Start("Building panels")
+            let wallList = new List<ElementId>(1)
+            wallList.Add(reference.ElementId)
 
-          PartUtils.CreateParts(doc, wallList)
-          doc.Regenerate()
-          let parts = PartUtils.GetAssociatedParts(doc, wall.Id, false, false)
-          let divisions = 15
-          let origin = line.Origin
-          let delta = line.Direction.Multiply(line.Length / (float)divisions)
-          let shiftDelta = Transform.get_Translation(delta)
-          let rotation = Transform.get_Rotation(origin, XYZ.BasisZ, 0.5 * Math.PI)
-          let wallWidthVector = rotation.OfVector(line.Direction.Multiply(2. * wall.Width))
-          let mutable intersectionLine = Line.CreateBound(origin + wallWidthVector,
-                                                          origin - wallWidthVector)
-          let curveArray = new List<Curve>()
+            PartUtils.CreateParts(doc, wallList)
+            doc.Regenerate()
+            let parts = PartUtils.GetAssociatedParts(doc, wall.Id, false, false)
+            let divisions = 15
+            let origin = line.Origin
+            let delta = line.Direction.Multiply(line.Length / (float)divisions)
+            let shiftDelta = Transform.get_Translation(delta)
+            let rotation = Transform.get_Rotation(origin, XYZ.BasisZ, 0.5 * Math.PI)
+            let wallWidthVector = rotation.OfVector(line.Direction.Multiply(2. * wall.Width))
+            let mutable intersectionLine = Line.CreateBound(origin + wallWidthVector,
+                                                            origin - wallWidthVector)
+            let curveArray = new List<Curve>()
 
-          for i = 1 to divisions do
-            intersectionLine <- intersectionLine.get_Transformed(shiftDelta) :?> Line
-            curveArray.Add(intersectionLine)
+            for i = 1 to divisions do
+              intersectionLine <- intersectionLine.get_Transformed(shiftDelta) :?> Line
+              curveArray.Add(intersectionLine)
 
-          let divisionSketchPlane = SketchPlane.Create(doc, new Plane(XYZ.BasisZ, line.Origin))
-          let intersectionElementsIds = new List<ElementId>()
-          let partMaker = PartUtils.DivideParts(doc, parts,
-                                                intersectionElementsIds,
-                                                curveArray,
-                                                divisionSketchPlane.Id)
-          doc.ActiveView.PartsVisibility <- PartsVisibility.ShowPartsOnly
-          transaction.Commit() |> ignore
+            let divisionSketchPlane = SketchPlane.Create(doc, new Plane(XYZ.BasisZ, line.Origin))
+            let intersectionElementsIds = new List<ElementId>()
+            let partMaker = PartUtils.DivideParts(doc, parts,
+                                                  intersectionElementsIds,
+                                                  curveArray,
+                                                  divisionSketchPlane.Id)
+            doc.ActiveView.PartsVisibility <- PartsVisibility.ShowPartsOnly
+            transaction.Commit() |> ignore
 
-          Autodesk.Revit.UI.Result.Succeeded
+            Autodesk.Revit.UI.Result.Succeeded
 
         with ex ->
           TaskDialog.Show("F# Panel Builder", ex.Message) |> ignore
