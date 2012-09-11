@@ -26,8 +26,11 @@ type Command() =
           let app  = uiApp.Application
           let uiDoc = uiApp.ActiveUIDocument
           let doc  = uiDoc.Document
+          let sel = uiDoc.Selection
           
-          let reference = uiDoc.Selection.PickObject(ObjectType.Element, new WallSelectionFilter(), "Select a wall to split into panels")
+          let reference = sel.PickObject(ObjectType.Element,
+                               new WallSelectionFilter(),
+                               "Select a wall to split into panels")
 
           let wall = doc.GetElement(reference.ElementId) :?> Wall
           let locationCurve = wall.Location :?> LocationCurve 
